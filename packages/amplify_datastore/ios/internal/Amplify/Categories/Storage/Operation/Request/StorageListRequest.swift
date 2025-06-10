@@ -60,6 +60,11 @@ public extension StorageListRequest {
         @available(*, deprecated, message: "Use `path` in Storage API instead of `Options`")
         public let path: String?
 
+        /// The strategy to use when listing contents from subpaths. Defaults to [`.include`](x-source-tag://SubpathStrategy.include)
+        ///
+        /// - Tag: StorageListRequestOptions.subpathStrategy
+        public let subpathStrategy: SubpathStrategy
+
         /// Number between 1 and 1,000 that indicates the limit of how many entries to fetch when
         /// retreiving file lists from the server.
         ///
@@ -72,6 +77,11 @@ public extension StorageListRequest {
         ///
         /// - Tag: StorageListRequestOptions.pageSize
         public let pageSize: UInt
+
+        /// A Storage Bucket that contains the objects to list. Defaults to `nil`, in which case the default one will be used.
+        ///
+        /// - Tag: StorageDownloadDataRequest.bucket
+        public let bucket: (any StorageBucket)?
 
         /// Opaque string indicating the page offset at which to resume a listing. This is usually a copy of
         /// the value from [StorageListResult.nextToken](x-source-tag://StorageListResult.nextToken).
@@ -91,18 +101,71 @@ public extension StorageListRequest {
         public let pluginOptions: Any?
 
         /// - Tag: StorageListRequestOptions.init
-        public init(accessLevel: StorageAccessLevel = .guest,
-                    targetIdentityId: String? = nil,
-                    path: String? = nil,
-                    pageSize: UInt = 1000,
-                    nextToken: String? = nil,
-                    pluginOptions: Any? = nil) {
+        public init(
+            accessLevel: StorageAccessLevel = .guest,
+            targetIdentityId: String? = nil,
+            path: String? = nil,
+            subpathStrategy: SubpathStrategy = .include,
+            pageSize: UInt = 1000,
+            nextToken: String? = nil,
+            pluginOptions: Any? = nil
+        ) {
             self.accessLevel = accessLevel
             self.targetIdentityId = targetIdentityId
             self.path = path
+            self.subpathStrategy = subpathStrategy
             self.pageSize = pageSize
+            self.bucket = nil
             self.nextToken = nextToken
             self.pluginOptions = pluginOptions
+        }
+
+        /// - Tag: StorageListRequestOptions.init
+        public init(
+            subpathStrategy: SubpathStrategy = .include,
+            pageSize: UInt = 1000,
+            bucket: some StorageBucket,
+            nextToken: String? = nil,
+            pluginOptions: Any? = nil
+        ) {
+            self.accessLevel = .guest
+            self.targetIdentityId = nil
+            self.path = nil
+            self.subpathStrategy = subpathStrategy
+            self.pageSize = pageSize
+            self.bucket = bucket
+            self.nextToken = nextToken
+            self.pluginOptions = pluginOptions
+        }
+    }
+}
+
+public extension StorageListRequest.Options {
+    /// Represents the strategy used when listing contents from subpaths relative to the given path.
+    ///
+    /// - Tag: StorageListRequestOptions.SubpathStrategy
+    enum SubpathStrategy {
+        /// Items from nested subpaths are included in the results
+        ///
+        /// - Tag: SubpathStrategy.include
+        case include
+
+        /// Items from nested subpaths are not included in the results. Their subpaths are instead grouped under [`StorageListResult.excludedSubpaths`](StorageListResult.excludedSubpaths).
+        ///
+        /// - Parameter delimitedBy: The delimiter used to determine subpaths. Defaults to `"/"`
+        ///
+        /// - SeeAlso: [`StorageListResult.excludedSubpaths`](x-source-tag://StorageListResult.excludedSubpaths)
+        ///
+        /// - Tag: SubpathStrategy.excludeWithDelimiter
+        case exclude(delimitedBy: String = "/")
+
+        /// Items from nested subpaths are not included in the results. Their subpaths are instead grouped under [`StorageListResult.excludedSubpaths`](StorageListResult.excludedSubpaths).
+        ///
+        /// - SeeAlso: [`StorageListResult.excludedSubpaths`](x-source-tag://StorageListResult.excludedSubpaths)
+        ///
+        /// - Tag: SubpathStrategy.exclude
+        public static var exclude: SubpathStrategy {
+            return .exclude()
         }
     }
 }

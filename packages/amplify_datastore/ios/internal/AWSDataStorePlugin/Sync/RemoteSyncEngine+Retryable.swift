@@ -15,6 +15,7 @@ extension RemoteSyncEngine {
     }
 
     func scheduleRestartOrTerminate(error: AmplifyError) {
+        Self.log.debug("scheduling restart or terminate on error: \(error)")
         let advice = getRetryAdvice(error: error)
         if advice.shouldRetry {
             scheduleRestart(advice: advice)
