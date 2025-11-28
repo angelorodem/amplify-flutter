@@ -82,15 +82,13 @@ class _AuthenticatorPhoneFieldState<FieldType extends Enum>
   }
 
   @override
-  bool get enabled {
+  bool get effectiveEnabled {
     switch (widget.enabled) {
-      case AuthenticatorTextEnabledOverride.enabled:
-        return true;
       case AuthenticatorTextEnabledOverride.disabled:
         return false;
       case AuthenticatorTextEnabledOverride.defaultSetting:
       case null:
-        return super.enabled;
+        return enabled;
     }
   }
 
